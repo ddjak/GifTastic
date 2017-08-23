@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Gifs</title>
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+
+  <div class="container col-md-12">
+    <h1>Movie Gifs</h1>
+
+    <div id="buttons-view" style="padding-left:20px"></div>
+
+    <form id="gif-form">
+      <label for="gif-input" style="padding:20px">Add a Gif</label>
+      <input type="text" id="gif-input"><br>
+
+      <!-- Button triggers new gif to be added -->
+      <input id="add-gif" type="submit" value="Add a Gif">
+    </form>
+
+    <div id="gif-container" class="col-md-4">
+    
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      // Initial array of movies
+      var gifs = ["The Matrix", "The Notebook", "Mr. Nobody", "The Lion King", "Baby Driver", "Finding Dory",
+                  "Cars", "Shark Tale", "Shawshank Redemption"];
+
+      // Function for dumping the JSON content for each button into the div
+      function displayGifInfo() {
+
+        var gif = this.textContent;
+
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q= " + gif + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        }).done(function(response){
+          console.log(response);
+          for (var i = 0; i < 10; i++){
+
+          $("#gif-container").append("<img src='" + response.data[i].images.fixed_width_still.url + "' data-still='" + response.data[i].images.fixed_width_still.url + "' data-animate='" + response.data[i].images.fixed_width.url + "' data-state='still' class='gif'>");
+          $("#gif-container").append("<br> Rated: " + response.data[i].rating + "<br><br>");
+          }
+      })
+      }
+
+      $("#gif-container").on("click", ".gif", function() {
+
+        var state = $(this).attr('data-state');
+
+        if (state === 'still'){
+          $(this).attr('src', $(this).attr('data-animate'));
+          $(this).attr('data-state', 'animated');
+        }
+
+        else if (state === 'animated'){
+          $(this).attr('src', $(this).attr('data-still'));
+          $(this).attr('data-state', 'still');
+        }
+
+      });
+
+      // Function for displaying movie data
+      function renderButtons() {
+
+        // Deleting the buttons prior to adding new movies
+        // (this is necessary otherwise you will have repeat buttons)
+        $("#buttons-view").empty();
+
+        // Looping through the array of movies
+        for (var i = 0; i < gifs.length; i++) {
+
+          // Then dynamicaly generating buttons for each movie in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+          var a = $("<button>");
+          // Adding a class of movie to our button
+          a.addClass("gif");
+          // Adding a data-attribute
+          a.attr("data-name", gifs[i]);
+          // Providing the initial button text
+          a.text(gifs[i]);
+          // Adding the button to the buttons-view div
+          $("#buttons-view").append(a);
+        }
+      }
+
+      // This function handles events where one button is clicked
+      $("#add-gif").on("click", function(event) {
+        event.preventDefault();
+
+        // This line grabs the input from the textbox
+        var gif = $("#gif-input").val().trim();
+
+        // The movie from the textbox is then added to our array
+        gifs.push(gif);
+
+        // Calling renderButtons which handles the processing of our movie array
+        renderButtons();
+
+      });
+
+      // Generic function for displaying the movieInfo
+      $(document).on("click", ".gif", displayGifInfo);
+
+      // Calling the renderButtons function to display the intial buttons
+      renderButtons();
+    </script>
+  </div>
+</body>
+
+</html>
